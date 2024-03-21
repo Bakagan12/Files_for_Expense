@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <img src="/images/logo.jpg" class="w-10 rounded-full" alt="">
+                <p>Overview</p>
+            </div>
+
+            <div>
+                <a href="/index.html" class="text-blue-500 underline hover:text-blue-300 transition-all">
+                    Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+    <br>
+    <main class="container">
+        <div class="flex justify-between w-full mb-3">
+            <div></div>
+            <div class="w-80">
+                <input type="text" placeholder="Search" id="user-search" class="form-input">
+            </div>
+        </div>
+        <div class="grid grid-cols-4 border p-3">
+            <p>Name</p>
+            <p>Email</p>
+            <p>Position</p>
+            <p>Total Expense</p>
+        </div>
+
+        <!-- Mga lista users -->
+        <div class="user-list">
+
+        </div>
+    </main>
+    <a href="/add-user.html"
+        class="fixed bottom-10 right-10 p-3 rounded bg-blue-500 text-white hover:scale-105 transition-transform">
+        Add User
+    </a>
+
+    <script>
+        const usersList = document.querySelector(".user-list");
+        const userSearch = document.getElementById("user-search");
+
+        const token = localStorage.getItem("token");
+
+        if (!token)
+            location.href = "/";
+
+        async function getUsers() {
+            const res = await fetch("http://localhost:5000/admin/users", {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
+            });
+            const data = await res.json();
+            console.log(data);
+            updateList(data);
+        }
+
+        async function fetchData() {
+            await getUsers();
+        }
+
+        fetchData();
+
+        userSearch.addEventListener("input", async evt => {
+            const value = evt.target.value;
+            const res = await fetch(`http://localhost:5000/admin/users/search?q=${value}`,
+                {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+            const data = await res.json();
+
+            console.log(data);
+
+            updateList(data);
+        });
+
+        function updateList(data) {
+            usersList.innerHTML = "";
+
+            for (let i = 0; i < data["data"].length; i++) {
+                usersList.innerHTML += `
+                <a href="/user-info.html?userId=${data["data"][i].user_id}" class="grid grid-cols-4 p-3">
+                <p>${data["data"][i].firstname} ${data["data"][i]["lastname"]}</p>
+                <p>${data["data"][i]["email"]}</p>
+                <p>${data["data"][i]["position"]}</p>
+                <p class= "text-green-600"> &#8369; ${data["data"][i]["total_expense"] ?? 0} </p>
+            </a>
+                `;
+            }
+        }
+    </script>
+</body>
+
+</html>
